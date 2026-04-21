@@ -58,6 +58,46 @@ Everything lives under the current project root. Nothing goes in `~/` or any sha
 
 Keep `./memory/` and `./notes/` in git if you want memory to travel with the repo. `graphify-out/` is derived and safe to `.gitignore`.
 
+## Storage: separate folders. Search: one unified surface.
+
+Files live in three folders on disk for *organization* reasons (authored vs derived, per-skill scope). At **query time** they collapse into one search surface — the layers never stay separate.
+
+**With graphify installed** — `graphify update .` ingests everything into one graph:
+
+```
+               (code)                DigestAuth
+                                          │
+                           ┌──────────────┼──────────────┐
+                           │  linked via  │ linked via   │
+                           │  "nodes"     │ "nodes_ref"  │
+                           ▼              │              ▼
+              (memory)                    │          (session)
+          "why DigestAuth"                │         "auth-redesign"
+          decision record                 │         session compact
+                                          │
+                                     (all in one
+                                      graph.json)
+```
+
+`$recall "DigestAuth"` then walks this unified graph — starting from the code node, traversing edges to the memory records and session nodes that cite it.
+
+**Without graphify** — `$recall` still unifies at search time, just via the filesystem:
+
+```
+$recall "DigestAuth"
+        │
+        ▼
+   find memory/ notes/sessions/ -name "*.json"      ← one find, both folders
+        │
+        ▼
+   jq filter across every file                      ← one search pass
+        │
+        ▼
+   results mix decisions + lessons + sessions       ← one ranked answer
+```
+
+So: separate on disk, unified at search. The split only matters for `.gitignore` and maintainability; it never shows up in query results.
+
 ## Design notes
 
 - **One graph, two kinds of input.** Code is parsed by graphify into the graph. Memory files are ingested by `graphify update .` and linked to the code nodes they name. `$recall` walks one unified graph.
