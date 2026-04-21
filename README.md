@@ -62,24 +62,32 @@ Keep `./memory/` and `./notes/` in git if you want memory to travel with the rep
 
 Files live in three folders on disk for *organization* reasons (authored vs derived, per-skill scope). At **query time** they collapse into one search surface — the layers never stay separate.
 
-**With graphify installed** — `graphify update .` ingests everything into one graph:
+**With graphify installed** — three different inputs, one graph:
 
 ```
-               (code)                DigestAuth
-                                          │
-                           ┌──────────────┼──────────────┐
-                           │  linked via  │ linked via   │
-                           │  "nodes"     │ "nodes_ref"  │
-                           ▼              │              ▼
-              (memory)                    │          (session)
-          "why DigestAuth"                │         "auth-redesign"
-          decision record                 │         session compact
-                                          │
-                                     (all in one
-                                      graph.json)
+   source files              $remember writes           $compact writes
+   (*.py, *.ts, ...)         memory/**/*.json          notes/sessions/*.json
+          │                          │                           │
+          │ graphify parses AST      │ graphify update .         │ graphify update .
+          │ → creates code nodes    │ ingests → memory nodes    │ ingests → session nodes
+          ▼                          ▼                           ▼
+     ┌────────────┐          ┌──────────────────┐      ┌───────────────────┐
+     │ DigestAuth │◄─────────┤ "why DigestAuth" │      │ "auth-redesign"   │
+     │ (code)     │  linked  │  decision record │      │  session compact  │
+     │            │  via     │    (memory)      │      │    (session)      │
+     │            │ "nodes"  │                  │      │                   │
+     │            │◄───────────────────────────────────┤  linked via       │
+     │            │                                    │  "nodes_ref"      │
+     └────────────┘                                    └───────────────────┘
+            │                          │                           │
+            └──────────────────────────┼───────────────────────────┘
+                                       │
+                                       ▼
+                          graphify-out/graph.json
+                          (one unified graph, three node types)
 ```
 
-`$recall "DigestAuth"` then walks this unified graph — starting from the code node, traversing edges to the memory records and session nodes that cite it.
+`$recall "DigestAuth"` walks this graph — starting from the code node (which graphify created by parsing the actual source file), traversing edges to the memory records and session nodes that cite it.
 
 **Without graphify** — `$recall` still unifies at search time, just via the filesystem:
 
