@@ -1,0 +1,7 @@
+memory/
+notes/
+graphify-out/
+.DS_Store
+.env
+.venv/
+__pycache__/
